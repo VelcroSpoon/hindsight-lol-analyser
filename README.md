@@ -259,7 +259,8 @@ games, which aren't published, so your numbers will differ.
 1. `npm install`
 2. `cp .env.local.example .env.local`
 3. Add `RIOT_API_KEY` from [developer.riotgames.com](https://developer.riotgames.com/)
-4. Set `RIOT_REGION` — `americas` (NA/BR/LAN/LAS), `europe` (EUW/EUNE/TR/RU),
-   `asia` (KR/JP), or `sea` (OCE/SEA)
+4. Optionally set `RIOT_REGION` (`americas`, `europe`, `asia` or `sea`) to the one nearest
+   you. It's only used to look up accounts. Players from any region work: each player's
+   region is looked up from Riot and their games are fetched from there.
 
 The key is server-side only and never reaches the client; `.env.local` is gitignored.

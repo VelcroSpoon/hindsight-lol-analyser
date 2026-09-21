@@ -1,4 +1,5 @@
-import { getRankedMatchIds, resolveRiotId } from "../riot/client";
+import { getLeaguePlatform, getRankedMatchIds, resolveRiotId } from "../riot/client";
+import { regionForPlatform } from "../riot/config";
 import { getTimelineCached, isCached, readCachedTimeline } from "../cache/timelineCache";
 import { getCachedAccount, putCachedAccount } from "../cache/accountCache";
 import { collectGames, type CollectResult } from "./collectGames";
@@ -58,12 +59,14 @@ export async function loadCachedPlayerGames(
 export async function fetchPlayerGames(riotId: string, target: number): Promise<PlayerGames> {
   const account = await resolveRiotId(riotId);
   const canonical = `${account.gameName}#${account.tagLine}`;
+  // Match history only comes from the player's own region, so look it up.
+  const region = regionForPlatform(await getLeaguePlatform(account.puuid));
 
   let fromCache = 0;
   let fetched = 0;
   const result = await collectGames({
     target,
-    fetchIds: (start, count) => getRankedMatchIds(account.puuid, { start, count }),
+    fetchIds: (start, count) => getRankedMatchIds(account.puuid, { start, count, region }),
     loadTimeline: async (matchId) => {
       if (await isCached(matchId)) {
         fromCache++;

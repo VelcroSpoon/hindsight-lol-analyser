@@ -1,4 +1,4 @@
-import { getApiKey, regionalBaseUrl } from "./config";
+import { getApiKey, regionalBaseUrl, regionForMatchId, type RiotRegion } from "./config";
 import { riotRateLimiter } from "./rateLimiter";
 import type { MatchTimelineDto } from "./types";
 
@@ -88,11 +88,24 @@ export async function resolveRiotId(riotId: string): Promise<RiotAccountDto> {
 
 // --- Match-V5 --------------------------------------------------------------
 
+/**
+ * Which League server a player plays on, e.g. "na1" or "euw1". Works through
+ * any regional endpoint; needed because match history is only served by the
+ * player's own region.
+ */
+export async function getLeaguePlatform(puuid: string): Promise<string> {
+  const url = `${regionalBaseUrl()}/riot/account/v1/region/by-game/lol/by-puuid/${encodeURIComponent(puuid)}`;
+  const { region } = await riotGet<{ puuid: string; game: string; region: string }>(url);
+  return region;
+}
+
 export interface RankedMatchIdsOptions {
   /** How many match IDs to return (Riot caps at 100). Default 20. */
   count?: number;
   /** How many to skip from the most recent. Default 0. */
   start?: number;
+  /** The player's region (see regionForPlatform). Default: RIOT_REGION. */
+  region?: RiotRegion;
 }
 
 /**
@@ -101,18 +114,20 @@ export interface RankedMatchIdsOptions {
  */
 export async function getRankedMatchIds(
   puuid: string,
-  { count = 20, start = 0 }: RankedMatchIdsOptions = {},
+  { count = 20, start = 0, region }: RankedMatchIdsOptions = {},
 ): Promise<string[]> {
   const url =
-    `${regionalBaseUrl()}/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids` +
+    `${regionalBaseUrl(region)}/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids` +
     `?type=ranked&start=${start}&count=${Math.min(count, 100)}`;
   return riotGet<string[]>(url);
 }
 
-/** Fetch the full timeline for a match ID. */
+/** Fetch the full timeline for a match ID, from the region named in the id. */
 export async function getMatchTimeline(
   matchId: string,
 ): Promise<MatchTimelineDto> {
-  const url = `${regionalBaseUrl()}/lol/match/v5/matches/${encodeURIComponent(matchId)}/timeline`;
+  const url =
+    `${regionalBaseUrl(regionForMatchId(matchId))}/lol/match/v5/matches/` +
+    `${encodeURIComponent(matchId)}/timeline`;
   return riotGet<MatchTimelineDto>(url);
 }
