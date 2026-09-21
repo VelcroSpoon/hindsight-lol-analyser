@@ -1,0 +1,805 @@
+/*
+ * Hindsight — visual system.
+ *
+ * A survey-plate look: cool pale ground, slate ink, the Rift drawn in muted
+ * land/river tones. Ward yellow is the only accent and is used only for wards.
+ * Team blue/red appear only where a team side is being shown.
+ * One typeface (Archivo) at two widths: extra-wide for headings, normal to read.
+ */
+
+:root {
+  --paper: #e6eae3;
+  --paper-raised: #f3f5f1;
+  --ink: #1a2730;
+  --ink-soft: #4d5c65;
+  --rule: #c3ccc0;
+
+  --land: #c9d3c4;
+  --lane: #edf0e9;
+  --river: #afc4cc;
+  --river-deep: #95aeb8;
+  --fog: rgba(26, 39, 48, 0.6);
+
+  --ward: #e3a21a;
+  --ward-deep: #8a5f00;
+  --blue: #2f5e9e;
+  --red: #b5473c;
+
+  --wide: "wdth" 125;
+  --radius: 4px;
+  --measure: 62ch;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+p {
+  margin: 0 0 0.75em;
+  max-width: var(--measure);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-variation-settings: var(--wide);
+  line-height: 1.08;
+}
+
+/* ---- page frame ------------------------------------------------------ */
+
+.site-header,
+.site-main,
+.site-footer {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+.site-header {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+.wordmark {
+  font-variation-settings: var(--wide);
+  font-weight: 800;
+  font-size: 20px;
+  text-decoration: none;
+  letter-spacing: 0.01em;
+}
+
+.site-main {
+  padding-bottom: 72px;
+}
+
+.site-footer {
+  padding-top: 24px;
+  padding-bottom: 32px;
+  border-top: 1px solid var(--rule);
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+@media (max-width: 640px) {
+  .site-header,
+  .site-main,
+  .site-footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+
+/* ---- type ------------------------------------------------------------ */
+
+.title {
+  font-size: clamp(34px, 5.4vw, 60px);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+}
+
+.subtitle {
+  margin-top: 10px;
+  color: var(--ink-soft);
+  font-size: 18px;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 750;
+  margin-bottom: 14px;
+}
+
+.muted {
+  color: var(--ink-soft);
+}
+
+.small {
+  font-size: 14px;
+}
+
+/* ---- controls -------------------------------------------------------- */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--ink);
+  color: var(--paper-raised);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.button:hover {
+  background: #2b3b45;
+}
+
+.button--quiet {
+  background: transparent;
+  color: var(--ink);
+}
+
+.button--quiet:hover {
+  background: var(--paper-raised);
+}
+
+.button:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+.field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+  color: var(--ink);
+  font: inherit;
+}
+
+.form-error {
+  margin-top: 8px;
+  color: var(--red);
+  font-weight: 600;
+}
+
+.status {
+  margin-top: 8px;
+  font-size: 15px;
+}
+
+.status--error {
+  color: var(--red);
+  font-weight: 600;
+}
+
+/* ---- the map ----------------------------------------------------------- */
+
+.rift {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--land);
+}
+
+.rift-land {
+  fill: var(--land);
+}
+
+.rift-base--blue {
+  fill: rgba(47, 94, 158, 0.18);
+}
+
+.rift-base--red {
+  fill: rgba(181, 71, 60, 0.16);
+}
+
+.rift-river {
+  fill: none;
+  stroke: var(--river);
+  stroke-width: 1150;
+  stroke-linecap: round;
+}
+
+.rift-pit {
+  fill: var(--river-deep);
+}
+
+.rift-lane {
+  fill: none;
+  stroke: var(--lane);
+  stroke-width: 620;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* deaths: verdict carried by shape as well as tone */
+.death-body {
+  stroke-width: 1.5px;
+}
+
+.death--flagged .death-body {
+  fill: var(--ink);
+  stroke: var(--paper-raised);
+}
+
+.death-cross {
+  stroke: var(--paper-raised);
+  stroke-width: 2px;
+  stroke-linecap: round;
+}
+
+.death--covered .death-body {
+  fill: var(--paper-raised);
+  stroke: var(--ink);
+  stroke-width: 2px;
+}
+
+.death-dot {
+  fill: var(--ink);
+}
+
+.death--abstained .death-body {
+  fill: rgba(243, 245, 241, 0.55);
+  stroke: var(--ink-soft);
+  stroke-dasharray: 3 3;
+}
+
+.death--dimmed {
+  opacity: 0.28;
+}
+
+/* Overview maps: many small marks. Let flagged read first, unjudged last. */
+.death--compact.death--abstained {
+  opacity: 0.65;
+}
+
+.death--compact.death--covered .death-body {
+  stroke-width: 1.75px;
+}
+
+.death-halo {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2px;
+}
+
+/* Map markers are wrapped in a focusable <g role="button"> (or an <a>). */
+a .death,
+g[role="button"] {
+  cursor: pointer;
+}
+
+g[role="button"]:focus-visible {
+  outline: none;
+}
+
+g[role="button"]:focus-visible .death-body,
+a:focus-visible .death-body {
+  stroke: var(--ward-deep);
+  stroke-width: 4px;
+}
+
+/* fog of war + estimated wards, shown for one selected death */
+.fog {
+  fill: var(--fog);
+  transition: opacity 180ms ease-out;
+}
+
+.ward-sight {
+  fill: rgba(227, 162, 26, 0.14);
+  stroke: var(--ward);
+  stroke-width: 1.5px;
+}
+
+.ward-error {
+  fill: none;
+  stroke: var(--ward);
+  stroke-width: 1.25px;
+  stroke-dasharray: 5 5;
+  /* Rings from nearby wards overlap; keep them readable as a group. */
+  opacity: 0.6;
+}
+
+.ward-dot {
+  fill: var(--ward);
+  stroke: var(--ink);
+  stroke-width: 1px;
+}
+
+.ward-dot--unsure {
+  fill: none;
+  stroke: var(--ward);
+  stroke-width: 1.5px;
+  stroke-dasharray: 3 3;
+}
+
+.threshold-ring {
+  fill: none;
+  stroke: var(--paper-raised);
+  stroke-width: 1.25px;
+  stroke-dasharray: 1 5;
+  stroke-linecap: round;
+}
+
+/* legend */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend svg {
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+
+/* ---- home -------------------------------------------------------------- */
+
+.home {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 48px;
+  align-items: start;
+  padding-top: 24px;
+}
+
+.home-intro .title {
+  font-size: clamp(40px, 7vw, 84px);
+  margin-bottom: 20px;
+}
+
+.home-intro .lede {
+  font-size: 20px;
+  margin-bottom: 28px;
+}
+
+.saved-players {
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.saved-players li {
+  padding: 10px 0;
+  border-top: 1px solid var(--rule);
+}
+
+.home-map figcaption {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 820px) {
+  .home {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+/* ---- player page ------------------------------------------------------- */
+
+.page-head {
+  padding: 8px 0 28px;
+}
+
+.page-head .actions {
+  margin-top: 18px;
+}
+
+.crumb {
+  display: inline-block;
+  margin-bottom: 10px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 44px;
+  align-items: start;
+  padding-bottom: 48px;
+}
+
+.headline {
+  font-size: clamp(24px, 2.8vw, 34px);
+  font-weight: 750;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  max-width: 24ch;
+}
+
+.rates {
+  margin: 28px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1.5px solid var(--ink);
+}
+
+.rates li {
+  display: grid;
+  grid-template-columns: 5.5ch 1fr;
+  gap: 14px;
+  align-items: baseline;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.rate-value {
+  font-variation-settings: var(--wide);
+  font-size: 26px;
+  font-weight: 800;
+  text-align: right;
+}
+
+.trust {
+  margin-top: 28px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--ward);
+  background: var(--paper-raised);
+  font-size: 15px;
+}
+
+.trust p:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 860px) {
+  .overview {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+}
+
+/* games table */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.games {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 16px;
+}
+
+.games th {
+  padding: 8px 12px;
+  border-bottom: 1.5px solid var(--ink);
+  font-size: 14px;
+  font-weight: 650;
+  text-align: left;
+  color: var(--ink-soft);
+}
+
+.games td {
+  padding: 11px 12px;
+  border-bottom: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+
+.games tbody tr:hover {
+  background: var(--paper-raised);
+}
+
+.games .num {
+  text-align: right;
+}
+
+.games a {
+  font-weight: 650;
+}
+
+.side-mark {
+  display: inline-block;
+  width: 4px;
+  height: 0.95em;
+  margin-right: 8px;
+  vertical-align: -0.1em;
+  border-radius: 1px;
+}
+
+.side-mark--blue {
+  background: var(--blue);
+}
+
+.side-mark--red {
+  background: var(--red);
+}
+
+.result--loss {
+  color: var(--ink-soft);
+}
+
+.zero {
+  color: var(--rule);
+}
+
+/* ---- match page -------------------------------------------------------- */
+
+.match {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 40px;
+  align-items: start;
+}
+
+.match-map {
+  position: sticky;
+  top: 16px;
+}
+
+.death-panel {
+  margin-top: 16px;
+  padding: 14px 16px;
+  background: var(--paper-raised);
+  border-radius: var(--radius);
+  font-size: 15px;
+}
+
+.death-panel h3 {
+  font-size: 18px;
+  font-weight: 750;
+  margin-bottom: 6px;
+}
+
+.death-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.findings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1.5px solid var(--ink);
+}
+
+.findings li {
+  border-bottom: 1px solid var(--rule);
+}
+
+.finding {
+  display: grid;
+  grid-template-columns: 4.2ch 1fr;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 12px 12px 10px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.finding {
+  cursor: pointer;
+}
+
+button.finding:hover {
+  background: var(--paper-raised);
+}
+
+/* The selected death's finding: shade the whole item, answer row included. */
+.findings li:has(> .finding[aria-pressed="true"]) {
+  background: var(--paper-raised);
+  box-shadow: inset 3px 0 0 var(--ink);
+}
+
+.findings li:has(> .finding[aria-pressed="true"]) button.finding:hover {
+  background: none;
+}
+
+.findings-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-bottom: 10px;
+}
+
+.findings-head .section-title {
+  margin-bottom: 0;
+}
+
+.findings-head p {
+  margin: 0;
+}
+
+/* "How to judge" guide: closed by default so the list stays in view. */
+.guide {
+  margin-bottom: 14px;
+  font-size: 15px;
+}
+
+.guide summary {
+  cursor: pointer;
+  font-weight: 650;
+  width: fit-content;
+}
+
+.guide[open] {
+  padding-bottom: 4px;
+}
+
+.guide[open] summary {
+  margin-bottom: 8px;
+}
+
+.guide ul {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+
+.guide li {
+  margin-bottom: 6px;
+  max-width: var(--measure);
+}
+
+/* Right / Wrong / Can't tell, aligned under the finding text (past the time column). */
+.verdict {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px 12px calc(13px + 4.2ch + 14px);
+}
+
+.verdict-question {
+  margin-right: 4px;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.verdict-button {
+  padding: 3px 11px;
+  border: 1.5px solid var(--ink-soft);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.verdict-button:hover {
+  border-color: var(--ink);
+  background: var(--paper-raised);
+}
+
+.verdict-button[aria-pressed="true"] {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper-raised);
+}
+
+.verdict-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.finding-time {
+  font-weight: 750;
+  font-variation-settings: var(--wide);
+  font-size: 15px;
+  padding-top: 1px;
+}
+
+.finding-title {
+  font-weight: 650;
+}
+
+.finding-detail {
+  margin-top: 2px;
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+
+.finding-sev {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 0 6px;
+  border: 1px solid var(--ink);
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 700;
+  vertical-align: 2px;
+}
+
+@media (max-width: 900px) {
+  .match {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+
+  .match-map {
+    position: static;
+  }
+}
+
+/* ---- empty and error states ------------------------------------------ */
+
+.empty {
+  max-width: var(--measure);
+  padding: 24px 0;
+}
+
+.empty .section-title {
+  margin-bottom: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

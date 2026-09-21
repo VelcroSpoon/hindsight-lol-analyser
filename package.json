@@ -1,0 +1,34 @@
+{
+  "name": "hindsight-league-analyser",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Post-game analysis tool for League of Legends — data layer and rule engine.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "fetch:one": "tsx scripts/fetch-one-timeline.ts",
+    "inspect": "tsx scripts/inspect-timeline.ts",
+    "analyze": "tsx scripts/analyze.ts",
+    "eval:position": "tsx scripts/eval-position.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "label": "tsx scripts/label.ts",
+    "score": "tsx scripts/score.ts",
+    "eval:uncertainty": "tsx scripts/eval-uncertainty.ts",
+    "eval:rule": "tsx scripts/eval-rule.ts"
+  },
+  "dependencies": {
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.0",
+    "@types/react": "^19.0.0",
+    "dotenv": "^16.4.7",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.11"
+  }
+}
