@@ -30,6 +30,7 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Everything except the login page itself and Next's static files.
-  matcher: ["/((?!login|_next/static|_next/image|favicon.ico).*)"],
+  // Everything except the login page, Next's static files, and riot.txt (Riot
+  // must be able to read it to verify the site for the production key).
+  matcher: ["/((?!login|riot\\.txt|_next/static|_next/image|favicon.ico).*)"],
 };
