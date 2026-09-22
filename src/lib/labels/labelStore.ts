@@ -5,6 +5,7 @@ import type { Finding } from "../rules/finding";
 import { participantIdForPuuid } from "../rules/engine";
 import { allEvents, formatGameTime } from "../rules/util";
 import { championNames, describeParticipant } from "../timeline/champions";
+import { dataLocation } from "../storage";
 
 /**
  * labels.json: hand-checked verdicts on findings, used to measure precision.
@@ -45,6 +46,15 @@ export interface LabelRow {
 }
 
 export const LABELS_FILE = path.join(process.cwd(), "labels.json");
+
+/**
+ * Answers are only worth collecting where they'll last. On a host with only
+ * temporary storage (e.g. Vercel) they would silently vanish, so judging is
+ * turned off there instead.
+ */
+export async function canSaveLabels(): Promise<boolean> {
+  return (await dataLocation()).persistent;
+}
 
 /**
  * A finding is identified by its match, rule and game time, plus an occurrence

@@ -9,6 +9,9 @@ import { MapLegend } from "@/components/MapLegend";
 import { RefreshButton } from "@/components/RefreshButton";
 
 export const dynamic = "force-dynamic";
+// Loading a new player from Riot (the refresh action on this page) makes about
+// 23 rate-limited requests; give it more than a host's short default limit.
+export const maxDuration = 60;
 
 type Params = Promise<{ slug: string }>;
 
@@ -76,7 +79,11 @@ export default async function PlayerPage({ params }: { params: Params }) {
         <h2 id="games-title" className="section-title">
           Games
         </h2>
-        <GamesTable games={report.games} slug={slug} judged={report.handCheck.judgedByMatch} />
+        <GamesTable
+          games={report.games}
+          slug={slug}
+          judged={report.canJudge ? report.handCheck.judgedByMatch : null}
+        />
       </section>
     </>
   );
@@ -134,8 +141,9 @@ function TrustNote({ report }: { report: PlayerReport }) {
       {judged === 0 ? (
         <p>
           None of these findings have been checked against replays yet. Until they are, treat them
-          as places to look, not verdicts. Open a game below, watch its replay, and mark each
-          finding right or wrong.
+          as places to look, not verdicts.
+          {report.canJudge &&
+            " Open a game below, watch its replay, and mark each finding right or wrong."}
         </p>
       ) : (
         <p>
@@ -167,7 +175,8 @@ function GamesTable({
 }: {
   games: GameSummary[];
   slug: string;
-  judged: Record<string, number>;
+  /** Answers per match, or null to leave the Checked column out. */
+  judged: Record<string, number> | null;
 }) {
   return (
     <div className="table-wrap">
@@ -181,7 +190,7 @@ function GamesTable({
             <th scope="col" className="num">No-ward deaths</th>
             <th scope="col" className="num">Unspent-gold deaths</th>
             <th scope="col" className="num">Lane deficits</th>
-            <th scope="col" className="num">Checked</th>
+            {judged && <th scope="col" className="num">Checked</th>}
           </tr>
         </thead>
         <tbody>
@@ -206,11 +215,13 @@ function GamesTable({
               <td className="num">
                 <Count n={count(g, "lane-differential")} />
               </td>
-              <td className="num">
-                <span className={judged[g.matchId] ? undefined : "zero"}>
-                  {judged[g.matchId] ?? 0} of {g.findings.length}
-                </span>
-              </td>
+              {judged && (
+                <td className="num">
+                  <span className={judged[g.matchId] ? undefined : "zero"}>
+                    {judged[g.matchId] ?? 0} of {g.findings.length}
+                  </span>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

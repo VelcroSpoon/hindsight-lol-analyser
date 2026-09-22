@@ -33,7 +33,7 @@ async function main() {
 
   console.log("Fetching + caching timeline...");
   await getTimelineCached(matchId);
-  const file = __cacheInternals.cachePath(matchId);
+  const file = await __cacheInternals.cachePath(matchId);
   console.log(`\nDone. Timeline cached at:\n  ${file}`);
   console.log(`\nNow run:  npm run inspect  (or: MATCH_ID=${matchId} npm run inspect)`);
 }

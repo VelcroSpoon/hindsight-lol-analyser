@@ -85,14 +85,14 @@ export function MatchExplorer({ match, initialT, threshold }: MatchExplorerProps
       <div>
         <div className="findings-head">
           <h2 className="section-title">Findings</h2>
-          {match.findings.length > 0 && (
+          {match.canJudge && match.findings.length > 0 && (
             <p className="muted small">
               {checked} of {match.findings.length} checked against the replay
             </p>
           )}
         </div>
 
-        {rulesHere.length > 0 && (
+        {match.canJudge && rulesHere.length > 0 && (
           <details className="guide">
             <summary>How to judge a finding</summary>
             <p>
@@ -152,27 +152,29 @@ export function MatchExplorer({ match, initialT, threshold }: MatchExplorerProps
                   ) : (
                     <div className="finding">{body}</div>
                   )}
-                  <div
-                    className="verdict"
-                    role="group"
-                    aria-label={`Was "${f.title}" at ${formatClock(f.gameTimeMs)} right?`}
-                  >
-                    <span className="verdict-question" aria-hidden="true">
-                      Was this right?
-                    </span>
-                    {ANSWERS.map((a) => (
-                      <button
-                        key={a.value}
-                        type="button"
-                        className="verdict-button"
-                        aria-pressed={answer === a.value}
-                        disabled={match.labelsError !== null}
-                        onClick={() => judge(key, a.value)}
-                      >
-                        {a.label}
-                      </button>
-                    ))}
-                  </div>
+                  {match.canJudge && (
+                    <div
+                      className="verdict"
+                      role="group"
+                      aria-label={`Was "${f.title}" at ${formatClock(f.gameTimeMs)} right?`}
+                    >
+                      <span className="verdict-question" aria-hidden="true">
+                        Was this right?
+                      </span>
+                      {ANSWERS.map((a) => (
+                        <button
+                          key={a.value}
+                          type="button"
+                          className="verdict-button"
+                          aria-pressed={answer === a.value}
+                          disabled={match.labelsError !== null}
+                          onClick={() => judge(key, a.value)}
+                        >
+                          {a.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </li>
               );
             })}

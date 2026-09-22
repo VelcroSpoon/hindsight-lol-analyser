@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { fetchPlayerGames } from "@/lib/analysis/playerGames";
-import { isVerdict, setVerdict } from "@/lib/labels/labelStore";
+import { canSaveLabels, isVerdict, setVerdict } from "@/lib/labels/labelStore";
 import { labelRowForKey } from "@/lib/report/playerReport";
 import { parseRiotId, riotIdToSlug } from "@/lib/report/riotId";
 
@@ -60,6 +60,10 @@ export async function saveVerdict(input: {
   verdict: string;
 }): Promise<SaveVerdictResult> {
   const { riotId, matchId, key, verdict } = input;
+  // The page hides the buttons here, but actions can be called directly.
+  if (!(await canSaveLabels())) {
+    return { ok: false, message: "Answers are only saved when Hindsight runs on your own computer." };
+  }
   if (verdict !== "" && !isVerdict(verdict)) {
     return { ok: false, message: "That answer isn't one of right, wrong or can't tell." };
   }

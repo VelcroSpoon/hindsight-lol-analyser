@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { resolveRiotId, type RiotAccountDto } from "../riot/client";
+import { cacheDir } from "../storage";
 
 /**
  * Caches Riot ID -> account (PUUID) and the ranked match-id list, so a full
@@ -10,8 +11,9 @@ import { resolveRiotId, type RiotAccountDto } from "../riot/client";
  * Stored at /cache/accounts.json, keyed by lowercased Riot ID.
  */
 
-const CACHE_DIR = path.join(process.cwd(), "cache");
-const ACCOUNTS_FILE = path.join(CACHE_DIR, "accounts.json");
+async function accountsFile(): Promise<string> {
+  return path.join(await cacheDir(), "accounts.json");
+}
 
 export interface CachedAccount {
   riotId: string;
@@ -27,7 +29,7 @@ type AccountStore = Record<string, CachedAccount>;
 
 async function readStore(): Promise<AccountStore> {
   try {
-    return JSON.parse(await fs.readFile(ACCOUNTS_FILE, "utf8")) as AccountStore;
+    return JSON.parse(await fs.readFile(await accountsFile(), "utf8")) as AccountStore;
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return {};
     throw err;
@@ -35,10 +37,11 @@ async function readStore(): Promise<AccountStore> {
 }
 
 async function writeStore(store: AccountStore): Promise<void> {
-  await fs.mkdir(CACHE_DIR, { recursive: true });
-  const tmp = `${ACCOUNTS_FILE}.${process.pid}.tmp`;
+  await fs.mkdir(await cacheDir(), { recursive: true });
+  const file = await accountsFile();
+  const tmp = `${file}.${process.pid}.tmp`;
   await fs.writeFile(tmp, JSON.stringify(store, null, 2), "utf8");
-  await fs.rename(tmp, ACCOUNTS_FILE);
+  await fs.rename(tmp, file);
 }
 
 export async function getCachedAccount(riotId: string): Promise<CachedAccount | null> {

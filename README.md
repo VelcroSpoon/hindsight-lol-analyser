@@ -245,7 +245,7 @@ never re-fetched.
 | `npm run analyze -- "<id>" [--games N] [--offline]` | analyze a player, print findings |
 | `npm run analyze -- --list` | list cached accounts (offline-ready) |
 | `npm run dev` | start the web UI at localhost:3000 |
-| `npm test` | run the test suite (91 tests) |
+| `npm test` | run the test suite (104 tests) |
 | `npm run eval:position` | position accuracy vs. held-out ground truth |
 | `npm run eval:uncertainty` | error as a function of anchor gap (calibration table) |
 | `npm run eval:rule -- "<id>"` | flagged/covered/abstained for all three rule versions |
@@ -276,3 +276,24 @@ games, which aren't published, so your numbers will differ.
    region is looked up from Riot and their games are fetched from there.
 
 The key is server-side only and never reaches the client; `.env.local` is gitignored.
+
+## Deploying (Vercel)
+
+In the Vercel project, open **Settings → Environment Variables** and add:
+
+| name | value |
+|---|---|
+| `RIOT_API_KEY` | your Riot API key |
+| `SITE_PASSWORD` | a password of your choice. **Required**: without it, the deployed site stays closed |
+| `RIOT_REGION` | optional, as in Setup |
+
+Then redeploy so the new settings take effect.
+
+A deployed copy is **private**: visitors enter `SITE_PASSWORD` once and the browser remembers it
+for a year. Riot's personal API keys may only serve you or a small private group; the password
+comes off once a production key is approved.
+
+Vercel can't keep files between requests, so a deployed copy saves downloaded games to temporary
+storage: they're re-downloaded after the server has been idle for a while. The Right / Wrong
+answer buttons are hidden there, since answers would be lost; they work when Hindsight runs on
+your own computer, where there's no password either.

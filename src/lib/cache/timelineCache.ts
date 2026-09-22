@@ -1,6 +1,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { getMatchTimeline } from "../riot/client";
+import { cacheDir } from "../storage";
 import type { MatchTimelineDto } from "../riot/types";
 
 /**
@@ -10,8 +11,6 @@ import type { MatchTimelineDto } from "../riot/types";
  * game is over, so there's no staleness to worry about.
  */
 
-const CACHE_DIR = path.join(process.cwd(), "cache");
-
 /**
  * Filenames of cached timelines look like "NA1_1234567890.json". Other files
  * live in /cache too (accounts.json), so anything that scans the directory for
@@ -19,20 +18,20 @@ const CACHE_DIR = path.join(process.cwd(), "cache");
  */
 export const TIMELINE_FILE = /^[A-Z0-9]+_[0-9]+[.]json$/;
 
-function cachePath(matchId: string): string {
+async function cachePath(matchId: string): Promise<string> {
   // Match IDs look like "NA1_1234567890" — safe as a filename, but guard anyway.
   const safe = matchId.replace(/[^A-Za-z0-9_-]/g, "_");
-  return path.join(CACHE_DIR, `${safe}.json`);
+  return path.join(await cacheDir(), `${safe}.json`);
 }
 
 async function ensureCacheDir(): Promise<void> {
-  await fs.mkdir(CACHE_DIR, { recursive: true });
+  await fs.mkdir(await cacheDir(), { recursive: true });
 }
 
 /** True if a timeline for this match ID is already on disk. */
 export async function isCached(matchId: string): Promise<boolean> {
   try {
-    await fs.access(cachePath(matchId));
+    await fs.access(await cachePath(matchId));
     return true;
   } catch {
     return false;
@@ -44,7 +43,7 @@ export async function readCachedTimeline(
   matchId: string,
 ): Promise<MatchTimelineDto | null> {
   try {
-    const raw = await fs.readFile(cachePath(matchId), "utf8");
+    const raw = await fs.readFile(await cachePath(matchId), "utf8");
     return JSON.parse(raw) as MatchTimelineDto;
   } catch (err) {
     if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
@@ -59,7 +58,7 @@ async function writeCachedTimeline(
   await ensureCacheDir();
   // Write to a temp file then rename, so a crash mid-write can't leave a
   // half-written JSON file that later reads as corrupt.
-  const finalPath = cachePath(matchId);
+  const finalPath = await cachePath(matchId);
   const tmpPath = `${finalPath}.${process.pid}.tmp`;
   await fs.writeFile(tmpPath, JSON.stringify(timeline), "utf8");
   await fs.rename(tmpPath, finalPath);
@@ -80,4 +79,4 @@ export async function getTimelineCached(
   return timeline;
 }
 
-export const __cacheInternals = { CACHE_DIR, cachePath };
+export const __cacheInternals = { cachePath };

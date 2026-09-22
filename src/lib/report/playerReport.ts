@@ -1,5 +1,6 @@
 import { loadCachedPlayerGames } from "../analysis/playerGames";
 import {
+  canSaveLabels,
   labelKey,
   labelRowsFor,
   readLabels,
@@ -63,6 +64,8 @@ export interface PlayerReport {
   /** The vision rule's decision on every death across these games. */
   vision: { deaths: number; flagged: number; covered: number; abstained: number };
   handCheck: HandCheckStatus;
+  /** False where answers can't be kept (temporary storage). */
+  canJudge: boolean;
 }
 
 export interface WardView {
@@ -95,6 +98,8 @@ export interface MatchView extends Omit<GameSummary, "deaths"> {
   deaths: DeathView[];
   /** One per finding, same order as `findings`. */
   findingLabels: FindingLabel[];
+  /** False where answers can't be kept (temporary storage); the buttons are hidden. */
+  canJudge: boolean;
   /** Set when labels.json exists but can't be read; judging is then disabled. */
   labelsError: string | null;
 }
@@ -170,6 +175,7 @@ export async function loadPlayerReport(riotId: string, wanted = 20): Promise<Pla
     cachedMatchIds: loaded.cachedMatchIds,
     vision,
     handCheck: await handCheckStatus(new Set(games.map((g) => g.matchId))),
+    canJudge: await canSaveLabels(),
   };
 }
 
@@ -211,7 +217,14 @@ export async function loadMatchView(riotId: string, matchId: string): Promise<Ma
   }
   const findingLabels = rows.map((r) => ({ key: labelKey(r), verdict: saved.get(labelKey(r)) ?? "" }));
 
-  return { ...s.summary, riotId: account.riotId, deaths, findingLabels, labelsError };
+  return {
+    ...s.summary,
+    riotId: account.riotId,
+    deaths,
+    findingLabels,
+    labelsError,
+    canJudge: await canSaveLabels(),
+  };
 }
 
 /**
