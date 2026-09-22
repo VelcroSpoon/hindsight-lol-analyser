@@ -11,6 +11,18 @@ doesn't contain the information the most useful rule needs**, and the project is
 around measuring how far a principled estimate can close that gap, then refusing to make
 claims it can't support. See [Design notes](#design-notes).
 
+![One game, with a death selected: fog covers the map except where friendly wards could see. Each yellow circle is an estimated ward position, its dashed ring the usual error of that estimate, and the dotted ring around the death marks the 1,400-unit distance the rule counts as close. The findings for the game are listed on the right.](docs/screenshots/match.png)
+
+*One game with a death selected. Fog covers everything friendly wards couldn't see. Each yellow
+circle is an estimated ward, its dashed ring the usual error of that estimate, and the dotted
+ring marks the distance the rule counts as "close". Here 15 wards were up, but none within
+reach of the death.*
+
+![A player's last 20 ranked games: every death on one map, marked by whether a friendly ward was nearby, with a summary of how often each problem happens per game.](docs/screenshots/player.png)
+
+*A player's overview: every death from their last 20 ranked games on one map, and how often
+each problem happens per game. Screenshots show a professional player's public ranked games.*
+
 Current stage: **data layer, rule engine, and a first web UI.** Run `npm run dev` and open
 <http://localhost:3000>: every death from a player's last 20 games on the map, and for any one
 death, which friendly wards were up and how sure the estimate of their position is.
